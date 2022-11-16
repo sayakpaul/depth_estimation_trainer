@@ -209,7 +209,8 @@ def main(args):
         "finetuned_from": args.model_ckpt,
         "dataset": "diode-subset",
     }
-    trainer.push_to_hub(**kwargs)
+    commit_message = f"wandb run name: {wandb.run.name}"
+    trainer.push_to_hub(commit_message=commit_message, **kwargs)
     print("Training done and model pushed...")
 
 
