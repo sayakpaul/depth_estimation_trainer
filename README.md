@@ -26,6 +26,9 @@ wandb login
 
 ### Running fine-tuning
 
+Since the code also pushes the checkpoints to 🤗 Hub, you would need to install Git LFS and configure it
+if not [done](https://git-lfs.github.com/) already. 
+
 ```bash
 python run_depth_estimation.py --head_init --log_code
 ```
