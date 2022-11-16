@@ -152,9 +152,9 @@ def main(args):
             iaa.Sometimes(
                 0.5, iaa.Affine(rotate=(-45, 45))
             ),  # rotate by -45 to 45 degrees (affects heatmaps)
-            iaa.Sometimes(
-                0.5, iaa.ElasticTransformation(alpha=50, sigma=5)
-            ),  # apply water effect (affects heatmaps)
+            # iaa.Sometimes(
+            #     0.5, iaa.ElasticTransformation(alpha=50, sigma=5)
+            # ),  # apply water effect (affects heatmaps)
         ],
         random_order=True,
     )
@@ -172,6 +172,12 @@ def main(args):
     validation_dataset = DIODEDataset(val_df, test_transformation_chain)
     print(f"Training dataset size: {len(train_dataset)}")
     print(f"Validation dataset size: {len(validation_dataset)}")
+
+    print("Visualizing training samples...")
+    temp_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=8)
+    visualize_samples = next(iter(temp_dataloader))
+    fig = visualize_depth_map(visualize_samples)
+    wandb.log({"training_samples": fig})
 
     print("Initializing training args...")
     model_name = args.model_ckpt.split("/")[-1]
