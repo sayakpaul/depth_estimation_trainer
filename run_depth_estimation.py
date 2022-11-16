@@ -9,7 +9,6 @@ import os
 from datetime import datetime
 from pprint import pformat
 
-import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
@@ -24,20 +23,21 @@ from transformers import (
 )
 
 from dataset import DIODEDataset, visualize_depth_map
+from metrics import errors
 
 _TRAIN_DIR = "train_subset"
 _VAL_DIR = "val"
-_RESIZE_TO = (512, 512)
+_RESIZE_TO = (384, 384)
 _TIMESTAMP = datetime.utcnow().strftime("%y%m%d-%H%M%S")
 _SEED = 2022
 
 
-def compute_metrics(eval_pred):
-    """Computes RMSE on a batch of predictions"""
-    logits, labels = eval_pred
-    rmse = (labels - logits) ** 2
-    rmse = np.sqrt(rmse.mean())
-    return {"rmse": rmse}
+# def compute_metrics(eval_pred):
+#     """Computes RMSE on a batch of predictions"""
+#     logits, labels = eval_pred
+#     rmse = (labels - logits) ** 2
+#     rmse = np.sqrt(rmse.mean())
+#     return {"rmse": rmse}
 
 
 def collate_fn(examples):
@@ -64,6 +64,8 @@ def parse_args():
     parser.add_argument(
         "--head_init", action="store_true", help="Initialize estimation head randomly."
     )
+    # `min_depth` reference: https://github.com/diode-dataset/diode-devkit/blob/master/diode.py#L62
+    parser.add_argument("--min_depth", default=0.5, type=float)
     # Training related
     parser.add_argument("--batch_size", default=24, type=int)
     parser.add_argument("--num_epochs", default=10, type=int)
@@ -153,16 +155,15 @@ def main(args):
     train_transform_chain = iaa.Sequential(
         [
             iaa.Resize(_RESIZE_TO, interpolation="linear"),
-            iaa.Fliplr(0.3),  # affects heatmaps
-            iaa.Sharpen((0.0, 1.0), name="sharpen"),  # sharpen (only) image
+            iaa.Fliplr(0.2),  # affects heatmaps
+            # iaa.Sharpen((0.0, 1.0), name="sharpen"),  # sharpen (only) image
             iaa.Sometimes(
-                0.5, iaa.Affine(rotate=(-45, 45))
+                0.2, iaa.Affine(rotate=(-45, 45))
             ),  # rotate by -45 to 45 degrees (affects heatmaps)
             # iaa.Sometimes(
             #     0.5, iaa.ElasticTransformation(alpha=50, sigma=5)
             # ),  # apply water effect (affects heatmaps)
-        ],
-        random_order=True,
+        ]
     )
     test_transformation_chain = torchvision.transforms.Compose(
         [
@@ -174,13 +175,15 @@ def main(args):
     wandb.log({"train_augs": wandb.Html(pformat(str(train_transform_chain)))})
 
     print("Preparing datasets...")
-    train_dataset = DIODEDataset(train_df, train_transform_chain, ["sharpen"])
-    validation_dataset = DIODEDataset(val_df, test_transformation_chain)
+    train_dataset = DIODEDataset(
+        train_df, train_transform_chain, args.min_depth, ["sharpen"]
+    )
+    validation_dataset = DIODEDataset(val_df, test_transformation_chain, args.min_depth)
     print(f"Training dataset size: {len(train_dataset)}")
     print(f"Validation dataset size: {len(validation_dataset)}")
 
     print("Visualizing training samples...")
-    temp_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=8)
+    temp_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=6)
     visualize_samples = next(iter(temp_dataloader))
     fig = visualize_depth_map(visualize_samples)
     wandb.log({"training_samples": fig})
@@ -214,13 +217,13 @@ def main(args):
         train_dataset=train_dataset,
         eval_dataset=validation_dataset,
         tokenizer=feature_extractor,
-        compute_metrics=compute_metrics,
+        compute_metrics=errors,
         data_collator=collate_fn,
     )
     _ = trainer.train()
 
     print("Visualizing prediction samples...")
-    temp_dataloader = torch.utils.data.DataLoader(validation_dataset, batch_size=8)
+    temp_dataloader = torch.utils.data.DataLoader(validation_dataset, batch_size=6)
     visualize_samples = next(iter(temp_dataloader))
     fig = visualize_depth_map(visualize_samples, trainer.model)
     wandb.log({"prediction_samples": fig})

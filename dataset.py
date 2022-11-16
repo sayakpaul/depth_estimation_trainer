@@ -8,7 +8,7 @@ from imgaug import augmenters as iaa
 
 
 class DIODEDataset(torch.utils.data.Dataset):
-    def __init__(self, dataframe, transformation_chain, input_only=None):
+    def __init__(self, dataframe, transformation_chain, min_depth, input_only=None):
         """
         Args:
             dataframe: pandas dataframe containing image path, depth map, and validity mask
@@ -22,7 +22,7 @@ class DIODEDataset(torch.utils.data.Dataset):
         """
         self.dataframe = dataframe
         self.transformation_chain = transformation_chain
-        self.min_depth = 0.1
+        self.min_depth = min_depth
         self.input_only = input_only
         self.to_tensor = torchvision.transforms.ToTensor()
 
@@ -84,11 +84,14 @@ def visualize_depth_map(samples, model=None):
         inputs = {"pixel_values": input.to(device)}
         with torch.no_grad():
             outputs = model(**inputs).predicted_depth
+            outputs = outputs.cpu().numpy()
+            outputs = (outputs * 255 / np.max(outputs)).astype("uint8")
+
         fig, ax = plt.subplots(6, 3, figsize=(12, 20))
         for i in range(6):
-            ax[i, 0].imshow(input[i].permute(1, 2, 0).numpy().astype("float32"))
+            ax[i, 0].imshow(input[i].permute(1, 2, 0).numpy())
             ax[i, 1].imshow(target[i].permute(1, 2, 0).numpy().squeeze(), cmap=cmap)
-            ax[i, 2].imshow(outputs[i].cpu().numpy().squeeze(), cmap=cmap)
+            ax[i, 2].imshow(outputs[i].squeeze(), cmap=cmap)
 
     else:
         fig, ax = plt.subplots(6, 2, figsize=(8, 20))
