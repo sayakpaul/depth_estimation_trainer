@@ -4,7 +4,6 @@ import numpy as np
 import PIL
 import torch
 import torchvision
-from imgaug import augmenters as iaa
 
 
 class DIODEDataset(torch.utils.data.Dataset):
