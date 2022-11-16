@@ -17,7 +17,8 @@ class DIODEDataset(torch.utils.data.Dataset):
 
         References:
             a. https://keras.io/examples/vision/depth_estimation/
-            b. https://github.com/fabioperez/pytorch-examples/blob/master/notebooks/PyTorch_Data_Augmentation_Image_Segmentation.ipynb
+            b. https://github.com/diode-dataset/diode-devkit/blob/master/diode.py
+            c. https://github.com/fabioperez/pytorch-examples/blob/master/notebooks/PyTorch_Data_Augmentation_Image_Segmentation.ipynb
         """
         self.dataframe = dataframe
         self.transformation_chain = transformation_chain
