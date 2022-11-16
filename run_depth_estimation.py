@@ -1,3 +1,9 @@
+"""Script to fine-tune a depth estimation model.
+
+Usage:
+    python run_depth_estimation.py --head_init --log_code
+"""
+
 import argparse
 import os
 from datetime import datetime
