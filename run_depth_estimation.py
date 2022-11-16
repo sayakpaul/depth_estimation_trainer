@@ -164,7 +164,7 @@ def main(args):
             torchvision.transforms.ToTensor(),
         ]
     )
-    wandb.log({"train_augs": pformat(str(train_transform_chain))})
+    wandb.log({"train_augs": wandb.Html(pformat(str(train_transform_chain)))})
 
     print("Preparing datasets...")
     train_dataset = DIODEDataset(train_df, train_transform_chain, ["sharpen"])
