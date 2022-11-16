@@ -188,7 +188,7 @@ def main(args):
         push_to_hub=True,
         fp16=True,
     )
-    wandb.config.update(training_args)
+    wandb.config.update(training_args, allow_val_change=True)
 
     print("Initializing Trainer and training...")
     trainer = Trainer(
