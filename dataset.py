@@ -97,8 +97,3 @@ def visualize_depth_map(samples, model=None):
             ax[i, 1].imshow(target[i].permute(1, 2, 0).numpy().squeeze(), cmap=cmap)
 
     return fig
-
-
-# temp_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=8, shuffle=True)
-# visualize_samples = next(iter(temp_dataloader))
-# visualize_depth_map(visualize_samples)
