@@ -63,6 +63,7 @@ def parse_args():
     parser.add_argument("--weight_decay", default=0.0, type=float)
     # Misc
     parser.add_argument("--run_name", default=None, type=str, help="WandB run name")
+    parser.add_argument("--log_code", action="store_true")
     return parser.parse_args()
 
 
@@ -130,6 +131,9 @@ def main(args):
         entity="sayakpaul",
         config=vars(args),
     )
+    if args.log_code:
+        print("Logging code...")
+        wandb.run.log_code(".", include_fn=lambda path: path.endswith(".py"))
 
     print("Preparing dataframes...")
     train_df, val_df = prepare_data_df(_TRAIN_DIR), prepare_data_df(_VAL_DIR)
