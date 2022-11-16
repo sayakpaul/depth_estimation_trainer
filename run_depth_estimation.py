@@ -23,6 +23,7 @@ _TRAIN_DIR = "train_subset"
 _VAL_DIR = "val"
 _RESIZE_TO = (512, 512)
 _TIMESTAMP = datetime.utcnow().strftime("%y%m%d-%H%M%S")
+_SEED = 2022
 
 
 def compute_metrics(eval_pred):
@@ -190,6 +191,7 @@ def main(args):
         load_best_model_at_end=True,
         push_to_hub=True,
         fp16=True,
+        seed=_SEED,
     )
     wandb.config.update(training_args, allow_val_change=True)
 
