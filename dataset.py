@@ -91,7 +91,7 @@ def visualize_depth_map(samples, model=None):
             ax[i, 2].imshow(outputs[i].cpu().numpy().squeeze(), cmap=cmap)
 
     else:
-        fig, ax = plt.subplots(6, 2, figsize=(12, 20))
+        fig, ax = plt.subplots(6, 2, figsize=(8, 20))
         for i in range(6):
             ax[i, 0].imshow(input[i].permute(1, 2, 0).numpy().astype("float32"))
             ax[i, 1].imshow(target[i].permute(1, 2, 0).numpy().squeeze(), cmap=cmap)
