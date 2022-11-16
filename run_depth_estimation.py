@@ -1,5 +1,6 @@
 import argparse
 import os
+from datetime import datetime
 from pprint import pformat
 
 import numpy as np
@@ -21,6 +22,7 @@ from dataset import DIODEDataset
 _TRAIN_DIR = "train_subset"
 _VAL_DIR = "val"
 _RESIZE_TO = (512, 512)
+_TIMESTAMP = datetime.utcnow().strftime("%y%m%d-%H%M%S")
 
 
 def compute_metrics(eval_pred):
@@ -123,6 +125,7 @@ def main(args):
     if args.run_name is None:
         run_name = f"de-ckpt@{args.model_ckpt}-head_init@{args.head_init}-decoder_init@{args.decoder_init}"
         run_name += f"-lr@{args.lr}-wd@{args.weight_decay}-wr@{args.warmup_ratio}"
+        run_name += f"-{_TIMESTAMP}"
     else:
         run_name = args.run_name
     wandb.init(
@@ -172,7 +175,7 @@ def main(args):
     print("Initializing training args...")
     model_name = args.model_ckpt.split("/")[-1]
     training_args = TrainingArguments(
-        f"{model_name}-finetuned-diode-{run_name}",  # To ensure there's a correspondence between WandB and Hub
+        f"{model_name}-finetuned-diode-{_TIMESTAMP}",  # To ensure there's a correspondence between WandB and Hub
         remove_unused_columns=False,
         evaluation_strategy="epoch",
         save_strategy="epoch",
