@@ -17,7 +17,7 @@ from transformers import (
     TrainingArguments,
 )
 
-from dataset import DIODEDataset
+from dataset import DIODEDataset, visualize_depth_map
 
 _TRAIN_DIR = "train_subset"
 _VAL_DIR = "val"
@@ -204,6 +204,14 @@ def main(args):
         data_collator=collate_fn,
     )
     _ = trainer.train()
+
+    print("Visualizing prediction samples...")
+    temp_dataloader = torch.utils.data.DataLoader(validation_dataset, batch_size=8)
+    visualize_samples = next(iter(temp_dataloader))
+    fig = visualize_depth_map(visualize_samples, trainer.model)
+    wandb.log({"prediction_samples": fig})
+
+    print("Pushing the trainer to Hub...")
     kwargs = {
         "tags": ["vision", "depth-estimation"],
         "finetuned_from": args.model_ckpt,
@@ -211,6 +219,7 @@ def main(args):
     }
     commit_message = f"wandb run name: {wandb.run.name}"
     trainer.push_to_hub(commit_message=commit_message, **kwargs)
+    wandb.run.finish()
     print("Training done and model pushed...")
 
 

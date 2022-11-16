@@ -1,4 +1,5 @@
 import imgaug as ia
+import matplotlib.pyplot as plt
 import numpy as np
 import PIL
 import torch
@@ -70,3 +71,34 @@ class DIODEDataset(torch.utils.data.Dataset):
             image = self.transformation_chain(image)
             depth_map = self.transformation_chain(depth_map)
         return {"image": image, "depth_map": depth_map}
+
+
+def visualize_depth_map(samples, model=None):
+    # Reference: https://keras.io/examples/vision/depth_estimation/#visualizing-samples
+    input, target = samples["image"], samples["depth_map"]
+    cmap = plt.cm.jet
+    cmap.set_bad(color="black")
+
+    if model:
+        device = model.device
+        inputs = {"pixel_values": input.to(device)}
+        with torch.no_grad():
+            outputs = model(**inputs).predicted_depth
+        fig, ax = plt.subplots(6, 3, figsize=(12, 20))
+        for i in range(6):
+            ax[i, 0].imshow(input[i].permute(1, 2, 0).numpy().astype("float32"))
+            ax[i, 1].imshow(target[i].permute(1, 2, 0).numpy().squeeze(), cmap=cmap)
+            ax[i, 2].imshow(outputs[i].cpu().numpy().squeeze(), cmap=cmap)
+
+    else:
+        fig, ax = plt.subplots(6, 2, figsize=(12, 20))
+        for i in range(6):
+            ax[i, 0].imshow(input[i].permute(1, 2, 0).numpy().astype("float32"))
+            ax[i, 1].imshow(target[i].permute(1, 2, 0).numpy().squeeze(), cmap=cmap)
+
+    return fig
+
+
+# temp_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=8, shuffle=True)
+# visualize_samples = next(iter(temp_dataloader))
+# visualize_depth_map(visualize_samples)
