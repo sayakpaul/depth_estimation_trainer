@@ -155,14 +155,14 @@ def main(args):
     train_transform_chain = iaa.Sequential(
         [
             iaa.Resize(_RESIZE_TO, interpolation="linear"),
-            iaa.Fliplr(0.2),  # affects heatmaps
+            iaa.Fliplr(0.3),  # affects heatmaps
             # iaa.Sharpen((0.0, 1.0), name="sharpen"),  # sharpen (only) image
-            iaa.Sometimes(
-                0.2, iaa.Affine(rotate=(-45, 45))
-            ),  # rotate by -45 to 45 degrees (affects heatmaps)
             # iaa.Sometimes(
-            #     0.5, iaa.ElasticTransformation(alpha=50, sigma=5)
-            # ),  # apply water effect (affects heatmaps)
+            #     0.2, iaa.Affine(rotate=(-45, 45))
+            # ),  # rotate by -45 to 45 degrees (affects heatmaps)
+            iaa.Sometimes(
+                0.3, iaa.ElasticTransformation(alpha=50, sigma=5)
+            ),  # apply water effect (affects heatmaps)
         ]
     )
     test_transformation_chain = torchvision.transforms.Compose(
