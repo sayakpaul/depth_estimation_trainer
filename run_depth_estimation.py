@@ -17,6 +17,7 @@ import torchvision
 import wandb
 from imgaug import augmenters as iaa
 from transformers import (
+    AutoConfig,
     GLPNFeatureExtractor,
     GLPNForDepthEstimation,
     Trainer,
@@ -28,17 +29,9 @@ from metrics import errors
 
 _TRAIN_DIR = "train_subset"
 _VAL_DIR = "val"
-_RESIZE_TO = (384, 384)
+_RESIZE_TO = (512, 512)
 _TIMESTAMP = datetime.utcnow().strftime("%y%m%d-%H%M%S")
 _SEED = 2022
-
-
-# def compute_metrics(eval_pred):
-#     """Computes RMSE on a batch of predictions"""
-#     logits, labels = eval_pred
-#     rmse = (labels - logits) ** 2
-#     rmse = np.sqrt(rmse.mean())
-#     return {"rmse": rmse}
 
 
 def collate_fn(examples):
@@ -121,8 +114,10 @@ def init_weights(model):
 
 def main(args):
     print(f"Initializing model and feature extractor with {args.model_ckpt}...")
+    config = AutoConfig.from_pretrained(args.model_ckpt)
+    config.max_depth = 1
     feature_extractor = GLPNFeatureExtractor.from_pretrained(args.model_ckpt)
-    model = GLPNForDepthEstimation.from_pretrained(args.model_ckpt)
+    model = GLPNForDepthEstimation.from_pretrained(args.model_ckpt, config=config)
     init_fn = init_weights(model)
 
     if args.head_init:
