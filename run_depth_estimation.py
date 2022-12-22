@@ -153,9 +153,9 @@ def main(args):
             iaa.Resize(_RESIZE_TO, interpolation="linear"),
             iaa.Fliplr(0.2),  # affects heatmaps
             # iaa.Sharpen((0.0, 1.0), name="sharpen"),  # sharpen (only) image
-            # iaa.Sometimes(
-            #     0.15, iaa.Affine(rotate=(-45, 45))
-            # ),  # rotate by -45 to 45 degrees (affects heatmaps)
+            iaa.Sometimes(
+                0.15, iaa.Affine(rotate=(-45, 45))
+            ),  # rotate by -45 to 45 degrees (affects heatmaps)
             # iaa.Sometimes(
             #     0.3, iaa.ElasticTransformation(alpha=50, sigma=5)
             # ),  # apply water effect (affects heatmaps)
