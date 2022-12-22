@@ -148,19 +148,19 @@ def main(args):
 
     print("Preparing augmentation chains...")
     # Heatmap transformations: https://imgaug.readthedocs.io/en/latest/source/examples_heatmaps.html
-    # train_transform_chain = iaa.Sequential(
-    #     [
-    #         iaa.Resize(_RESIZE_TO, interpolation="linear"),
-    #         iaa.Fliplr(0.2),  # affects heatmaps
-    #         # iaa.Sharpen((0.0, 1.0), name="sharpen"),  # sharpen (only) image
-    #         iaa.Sometimes(
-    #             0.15, iaa.Affine(rotate=(-45, 45))
-    #         ),  # rotate by -45 to 45 degrees (affects heatmaps)
-    #         # iaa.Sometimes(
-    #         #     0.3, iaa.ElasticTransformation(alpha=50, sigma=5)
-    #         # ),  # apply water effect (affects heatmaps)
-    #     ]
-    # )
+    train_transform_chain = iaa.Sequential(
+        [
+            iaa.Resize(_RESIZE_TO, interpolation="linear"),
+            iaa.Fliplr(0.2),  # affects heatmaps
+            # iaa.Sharpen((0.0, 1.0), name="sharpen"),  # sharpen (only) image
+            # iaa.Sometimes(
+            #     0.15, iaa.Affine(rotate=(-45, 45))
+            # ),  # rotate by -45 to 45 degrees (affects heatmaps)
+            # iaa.Sometimes(
+            #     0.3, iaa.ElasticTransformation(alpha=50, sigma=5)
+            # ),  # apply water effect (affects heatmaps)
+        ]
+    )
 
     test_transformation_chain = torchvision.transforms.Compose(
         [
@@ -169,14 +169,14 @@ def main(args):
             torchvision.transforms.ToTensor(),
         ]
     )
-    train_transform_chain = copy.deepcopy(test_transformation_chain)
+    # train_transform_chain = copy.deepcopy(test_transformation_chain)
     wandb.log({"train_augs": wandb.Html(pformat(str(train_transform_chain)))})
 
     print("Preparing datasets...")
-    # train_dataset = DIODEDataset(
-    #     train_df, train_transform_chain, args.min_depth, ["sharpen"]
-    # )
-    train_dataset = DIODEDataset(train_df, train_transform_chain, args.min_depth)
+    train_dataset = DIODEDataset(
+        train_df, train_transform_chain, args.min_depth, ["sharpen"]
+    )
+    # train_dataset = DIODEDataset(train_df, train_transform_chain, args.min_depth)
     validation_dataset = DIODEDataset(val_df, test_transformation_chain, args.min_depth)
     print(f"Training dataset size: {len(train_dataset)}")
     print(f"Validation dataset size: {len(validation_dataset)}")
