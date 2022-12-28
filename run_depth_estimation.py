@@ -10,12 +10,12 @@ import os
 from datetime import datetime
 from pprint import pformat
 
+import albumentations as A
 import pandas as pd
 import torch
 import torch.nn as nn
 import torchvision
 import wandb
-from imgaug import augmenters as iaa
 from transformers import (
     AutoConfig,
     GLPNFeatureExtractor,
@@ -29,7 +29,7 @@ from metrics import errors
 
 _TRAIN_DIR = "train_subset"
 _VAL_DIR = "val"
-_RESIZE_TO = (512, 512)
+_RESIZE_TO = (448, 576)
 _TIMESTAMP = datetime.utcnow().strftime("%y%m%d-%H%M%S")
 _SEED = 2022
 
@@ -147,29 +147,20 @@ def main(args):
     train_df, val_df = prepare_data_df(_TRAIN_DIR), prepare_data_df(_VAL_DIR)
 
     print("Preparing augmentation chains...")
-    # Heatmap transformations: https://imgaug.readthedocs.io/en/latest/source/examples_heatmaps.html
-    # train_transform_chain = iaa.Sequential(
-    #     [
-    #         iaa.Resize(_RESIZE_TO, interpolation="linear"),
-    #         iaa.Fliplr(0.2),  # affects heatmaps
-    #         # iaa.Sharpen((0.0, 1.0), name="sharpen"),  # sharpen (only) image
-    #         iaa.Sometimes(
-    #             0.15, iaa.Affine(rotate=(-45, 45))
-    #         ),  # rotate by -45 to 45 degrees (affects heatmaps)
-    #         # iaa.Sometimes(
-    #         #     0.3, iaa.ElasticTransformation(alpha=50, sigma=5)
-    #         # ),  # apply water effect (affects heatmaps)
-    #     ]
-    # )
-
-    test_transformation_chain = torchvision.transforms.Compose(
-        [
-            torchvision.transforms.ToPILImage(),
-            torchvision.transforms.Resize(_RESIZE_TO),
-            torchvision.transforms.ToTensor(),
-        ]
+    train_transforms = [
+        A.HorizontalFlip(),
+        A.RandomCrop(_RESIZE_TO[0], _RESIZE_TO[1]),
+        A.RandomBrightnessContrast(),
+        A.RandomGamma(),
+        A.HueSaturationValue(),
+    ]
+    additional_targets = {"depth": "mask"}
+    train_transform_chain = A.Compose(
+        transforms=train_transforms, additional_targets=additional_targets
     )
-    train_transform_chain = copy.deepcopy(test_transformation_chain)
+
+    test_transformation_chain = None
+    # train_transform_chain = copy.deepcopy(test_transformation_chain)
     wandb.log({"train_augs": wandb.Html(pformat(str(train_transform_chain)))})
 
     print("Preparing datasets...")

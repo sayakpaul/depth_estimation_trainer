@@ -1,4 +1,4 @@
-import imgaug as ia
+# import imgaug as ia
 import matplotlib.pyplot as plt
 import numpy as np
 import PIL
@@ -7,7 +7,7 @@ import torchvision
 
 
 class DIODEDataset(torch.utils.data.Dataset):
-    def __init__(self, dataframe, transformation_chain, min_depth, input_only=None):
+    def __init__(self, dataframe, transformation_chain, min_depth):
         """
         Args:
             dataframe: pandas dataframe containing image path, depth map, and validity mask
@@ -23,7 +23,6 @@ class DIODEDataset(torch.utils.data.Dataset):
         self.dataframe = dataframe
         self.transformation_chain = transformation_chain
         self.min_depth = min_depth
-        self.input_only = input_only
         self.to_tensor = torchvision.transforms.ToTensor()
 
     def _process_depth_map(self, depth_map: np.ndarray, mask: np.ndarray):
@@ -59,17 +58,13 @@ class DIODEDataset(torch.utils.data.Dataset):
         mask = np.load(mask_path)
         depth_map = self._process_depth_map(depth_map, mask)
 
-        if self.input_only:
-            det_tf = self.transformation_chain.to_deterministic()
-            image = det_tf.augment_image(image)
-            depth_map = det_tf.augment_image(
-                depth_map, hooks=ia.HooksImages(activator=self._activator_masks)
-            )
-            image = self.to_tensor(image)
-            depth_map = self.to_tensor(depth_map.copy())
+        if self.transformation_chain is not None:
+            augmented = self.transformation_chain(image=image, depth=depth_map)
+            image = self.to_tensor(augmented["image"])
+            depth_map = self.to_tensor(augmented["depth"])
         else:
-            image = self.transformation_chain(image)
-            depth_map = self.transformation_chain(depth_map)
+            image = self.to_tensor(image)
+            depth_map = self.to_tensor(depth_map)
         return {"image": image, "depth_map": depth_map}
 
 
