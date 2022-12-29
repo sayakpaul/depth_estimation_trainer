@@ -7,7 +7,7 @@ import torchvision
 
 
 class DIODEDataset(torch.utils.data.Dataset):
-    def __init__(self, dataframe, transformation_chain, min_depth):
+    def __init__(self, dataframe, transformation_chain, min_depth, is_train):
         """
         Args:
             dataframe: pandas dataframe containing image path, depth map, and validity mask
@@ -23,6 +23,7 @@ class DIODEDataset(torch.utils.data.Dataset):
         self.dataframe = dataframe
         self.transformation_chain = transformation_chain
         self.min_depth = min_depth
+        self.is_train = is_train
         self.to_tensor = torchvision.transforms.ToTensor()
 
     def _process_depth_map(self, depth_map: np.ndarray, mask: np.ndarray):
@@ -58,13 +59,13 @@ class DIODEDataset(torch.utils.data.Dataset):
         mask = np.load(mask_path)
         depth_map = self._process_depth_map(depth_map, mask)
 
-        if self.transformation_chain is not None:
+        if self.is_train:
             augmented = self.transformation_chain(image=image, depth=depth_map)
             image = self.to_tensor(augmented["image"])
             depth_map = self.to_tensor(augmented["depth"])
         else:
-            image = self.to_tensor(image)
-            depth_map = self.to_tensor(depth_map)
+            image = self.transformation_chain(image)
+            depth_map = self.transformation_chain(depth_map)
         return {"image": image, "depth_map": depth_map}
 
 

@@ -29,7 +29,8 @@ from metrics import errors
 
 _TRAIN_DIR = "train_subset"
 _VAL_DIR = "val"
-_RESIZE_TO = (448, 576)
+_TRAIN_RESIZE_TO = (448, 576)
+_TEST_RESIZE_TO = 512
 _TIMESTAMP = datetime.utcnow().strftime("%y%m%d-%H%M%S")
 _SEED = 2022
 
@@ -149,7 +150,7 @@ def main(args):
     print("Preparing augmentation chains...")
     train_transforms = [
         A.HorizontalFlip(),
-        A.RandomCrop(_RESIZE_TO[0], _RESIZE_TO[1]),
+        A.RandomCrop(_TRAIN_RESIZE_TO[0], _TRAIN_RESIZE_TO[1]),
         A.RandomBrightnessContrast(),
         A.RandomGamma(),
         A.HueSaturationValue(),
@@ -159,7 +160,13 @@ def main(args):
         transforms=train_transforms, additional_targets=additional_targets
     )
 
-    test_transformation_chain = None
+    test_transformation_chain = torchvision.transforms.Compose(
+        [
+            torchvision.transforms.ToPILImage(),
+            torchvision.transforms.Resize(_TEST_RESIZE_TO),
+            torchvision.transforms.ToTensor(),
+        ]
+    )
     # train_transform_chain = copy.deepcopy(test_transformation_chain)
     wandb.log({"train_augs": wandb.Html(pformat(str(train_transform_chain)))})
 
@@ -167,8 +174,12 @@ def main(args):
     # train_dataset = DIODEDataset(
     #     train_df, train_transform_chain, args.min_depth, ["sharpen"]
     # )
-    train_dataset = DIODEDataset(train_df, train_transform_chain, args.min_depth)
-    validation_dataset = DIODEDataset(val_df, test_transformation_chain, args.min_depth)
+    train_dataset = DIODEDataset(
+        train_df, train_transform_chain, args.min_depth, is_train=True
+    )
+    validation_dataset = DIODEDataset(
+        val_df, test_transformation_chain, args.min_depth, is_train=False
+    )
     print(f"Training dataset size: {len(train_dataset)}")
     print(f"Validation dataset size: {len(validation_dataset)}")
 
