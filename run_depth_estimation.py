@@ -30,7 +30,7 @@ from metrics import errors
 _TRAIN_DIR = "train_subset"
 _VAL_DIR = "val"
 _TRAIN_RESIZE_TO = (448, 576)
-_TEST_RESIZE_TO = 512
+_TEST_RESIZE_TO = (512, 512)
 _TIMESTAMP = datetime.utcnow().strftime("%y%m%d-%H%M%S")
 _SEED = 2022
 
