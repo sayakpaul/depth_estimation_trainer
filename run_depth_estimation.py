@@ -163,7 +163,7 @@ def main(args):
     test_transformation_chain = torchvision.transforms.Compose(
         [
             torchvision.transforms.ToPILImage(),
-            torchvision.transforms.Resize(_TEST_RESIZE_TO),
+            torchvision.transforms.Resize(_TRAIN_RESIZE_TO),
             torchvision.transforms.ToTensor(),
         ]
     )
