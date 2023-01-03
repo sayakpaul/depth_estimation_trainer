@@ -29,8 +29,7 @@ from metrics import errors
 
 _TRAIN_DIR = "train_subset"
 _VAL_DIR = "val"
-_TRAIN_RESIZE_TO = (448, 576)
-_TEST_RESIZE_TO = (512, 512)
+_RESIZE_TO = (448, 576)
 _TIMESTAMP = datetime.utcnow().strftime("%y%m%d-%H%M%S")
 _SEED = 2022
 
@@ -150,7 +149,7 @@ def main(args):
     print("Preparing augmentation chains...")
     train_transforms = [
         A.HorizontalFlip(),
-        A.RandomCrop(_TRAIN_RESIZE_TO[0], _TRAIN_RESIZE_TO[1]),
+        A.RandomCrop(_RESIZE_TO[0], _RESIZE_TO[1]),
         A.RandomBrightnessContrast(),
         A.RandomGamma(),
         A.HueSaturationValue(),
@@ -163,7 +162,7 @@ def main(args):
     test_transformation_chain = torchvision.transforms.Compose(
         [
             torchvision.transforms.ToPILImage(),
-            torchvision.transforms.Resize(_TRAIN_RESIZE_TO),
+            torchvision.transforms.Resize(_RESIZE_TO),
             torchvision.transforms.ToTensor(),
         ]
     )
