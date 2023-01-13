@@ -64,7 +64,7 @@ class DIODEDataset(torch.utils.data.Dataset):
         depth_map = self._process_depth_map(depth_map, mask)
 
         # Vertical CutDepth
-        if self.count % 4 == 0:
+        if self.count % 4 == 0 and self.is_train:
             _, W, _ = image.shape
             alpha = random.random()
             beta = random.random()
