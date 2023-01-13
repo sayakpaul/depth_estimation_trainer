@@ -58,6 +58,11 @@ def parse_args():
     parser.add_argument(
         "--head_init", action="store_true", help="Initialize estimation head randomly."
     )
+    parser.add_argument(
+        "--vertical_cutdepth",
+        action="store_true",
+        help="If we're using vertical cutdepth.",
+    )
     # `min_depth` reference: https://github.com/diode-dataset/diode-devkit/blob/master/diode.py#L62
     parser.add_argument("--min_depth", default=0.5, type=float)
     # Training related
@@ -174,10 +179,18 @@ def main(args):
     #     train_df, train_transform_chain, args.min_depth, ["sharpen"]
     # )
     train_dataset = DIODEDataset(
-        train_df, train_transform_chain, args.min_depth, is_train=True
+        train_df,
+        train_transform_chain,
+        args.min_depth,
+        vertical_cutdepth=True,
+        is_train=True,
     )
     validation_dataset = DIODEDataset(
-        val_df, test_transformation_chain, args.min_depth, is_train=False
+        val_df,
+        test_transformation_chain,
+        args.min_depth,
+        vertical_cutdepth=False,
+        is_train=False,
     )
     print(f"Training dataset size: {len(train_dataset)}")
     print(f"Validation dataset size: {len(validation_dataset)}")

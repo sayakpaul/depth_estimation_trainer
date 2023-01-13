@@ -9,7 +9,9 @@ import torchvision
 
 
 class DIODEDataset(torch.utils.data.Dataset):
-    def __init__(self, dataframe, transformation_chain, min_depth, is_train):
+    def __init__(
+        self, dataframe, transformation_chain, min_depth, vertical_cutdepth, is_train
+    ):
         """
         Args:
             dataframe: pandas dataframe containing image path, depth map, and validity mask
@@ -28,7 +30,10 @@ class DIODEDataset(torch.utils.data.Dataset):
         self.min_depth = min_depth
         self.is_train = is_train
         self.to_tensor = torchvision.transforms.ToTensor()
-        self.count = 0
+
+        if vertical_cutdepth is not None:
+            self.vertical_cutdepth = vertical_cutdepth
+            self.count = 0
 
     def _process_depth_map(self, depth_map: np.ndarray, mask: np.ndarray):
         mask = mask > 0
@@ -64,18 +69,21 @@ class DIODEDataset(torch.utils.data.Dataset):
         depth_map = self._process_depth_map(depth_map, mask)
 
         # Vertical CutDepth
-        if self.count % 4 == 0 and self.is_train:
-            _, W, _ = image.shape
-            alpha = random.random()
-            beta = random.random()
-            p = 0.75
+        if self.is_train and self.vertical_cutdepth:
+            if self.count % 4 == 0:
+                _, W, _ = image.shape
+                alpha = random.random()
+                beta = random.random()
+                p = 0.75
 
-            l = int(alpha * W)
-            w = int(max((W - alpha * W) * beta * p, 1))
+                l = int(alpha * W)
+                w = int(max((W - alpha * W) * beta * p, 1))
 
-            image[:, l : l + w, 0] = depth_map[:, l : l + w]
-            image[:, l : l + w, 1] = depth_map[:, l : l + w]
-            image[:, l : l + w, 2] = depth_map[:, l : l + w]
+                image[:, l : l + w, 0] = depth_map[:, l : l + w]
+                image[:, l : l + w, 1] = depth_map[:, l : l + w]
+                image[:, l : l + w, 2] = depth_map[:, l : l + w]
+
+                self.count += 1
 
         if self.is_train:
             augmented = self.transformation_chain(image=image, depth=depth_map)
