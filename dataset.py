@@ -80,12 +80,12 @@ class DIODEDataset(torch.utils.data.Dataset):
                 l = int(alpha * W)
                 w = int(max((W - alpha * W) * beta * p, 1))
 
-                if len(depth_map.shape) == 2:
-                    depth_map = np.expand_dims(depth_map, -1)
+                if len(depth_map.shape) == 3:
+                    depth_map = np.squeeze(depth_map, -1)
                 image[:, l : l + w, 0] = depth_map[:, l : l + w]
                 image[:, l : l + w, 1] = depth_map[:, l : l + w]
                 image[:, l : l + w, 2] = depth_map[:, l : l + w]
-                depth_map = depth_map.squeeze()
+                depth_map = np.expand_dims(depth_map, -1)
 
                 self.count += 1
 
