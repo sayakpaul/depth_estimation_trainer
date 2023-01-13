@@ -1,4 +1,6 @@
 # import imgaug as ia
+import random
+
 import matplotlib.pyplot as plt
 import numpy as np
 import PIL
@@ -19,12 +21,14 @@ class DIODEDataset(torch.utils.data.Dataset):
             a. https://keras.io/examples/vision/depth_estimation/
             b. https://github.com/diode-dataset/diode-devkit/blob/master/diode.py
             c. https://github.com/fabioperez/pytorch-examples/blob/master/notebooks/PyTorch_Data_Augmentation_Image_Segmentation.ipynb
+            d. https://github.com/vinvino02/GLPDepth/blob/main/code/dataset/base_dataset.py
         """
         self.dataframe = dataframe
         self.transformation_chain = transformation_chain
         self.min_depth = min_depth
         self.is_train = is_train
         self.to_tensor = torchvision.transforms.ToTensor()
+        self.count = 0
 
     def _process_depth_map(self, depth_map: np.ndarray, mask: np.ndarray):
         mask = mask > 0
@@ -58,6 +62,20 @@ class DIODEDataset(torch.utils.data.Dataset):
         depth_map = np.load(depth_map_path).squeeze()
         mask = np.load(mask_path)
         depth_map = self._process_depth_map(depth_map, mask)
+
+        # Vertical CutDepth
+        if self.count % 4 == 0:
+            _, W, _ = image.shape
+            alpha = random.random()
+            beta = random.random()
+            p = 0.75
+
+            l = int(alpha * W)
+            w = int(max((W - alpha * W) * beta * p, 1))
+
+            image[:, l : l + w, 0] = depth_map[:, l : l + w]
+            image[:, l : l + w, 1] = depth_map[:, l : l + w]
+            image[:, l : l + w, 2] = depth_map[:, l : l + w]
 
         if self.is_train:
             augmented = self.transformation_chain(image=image, depth=depth_map)
