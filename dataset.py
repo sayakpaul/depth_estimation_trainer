@@ -62,7 +62,7 @@ class DIODEDataset(torch.utils.data.Dataset):
         mask_path = self.dataframe.iloc[idx]["mask"]
 
         image = PIL.Image.open(image_path).convert("RGB")
-        image = np.asarray(image)
+        image = np.array(image)
 
         depth_map = np.load(depth_map_path).squeeze()
         mask = np.load(mask_path)
