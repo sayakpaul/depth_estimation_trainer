@@ -60,8 +60,9 @@ def parse_args():
     )
     parser.add_argument(
         "--vertical_cutdepth",
-        action="store_true",
-        help="If we're using vertical cutdepth.",
+        default=0.75,
+        type=float,
+        help="Probability for applying vertical cutdepth.",
     )
     # `min_depth` reference: https://github.com/diode-dataset/diode-devkit/blob/master/diode.py#L62
     parser.add_argument("--min_depth", default=0.5, type=float)
@@ -182,14 +183,14 @@ def main(args):
         train_df,
         train_transform_chain,
         args.min_depth,
-        vertical_cutdepth=True,
+        vertical_cutdepth=args.vertical_cutdepth,
         is_train=True,
     )
     validation_dataset = DIODEDataset(
         val_df,
         test_transformation_chain,
         args.min_depth,
-        vertical_cutdepth=False,
+        vertical_cutdepth=None,
         is_train=False,
     )
     print(f"Training dataset size: {len(train_dataset)}")
